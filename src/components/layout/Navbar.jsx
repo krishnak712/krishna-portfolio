@@ -1,0 +1,459 @@
+import { useEffect, useState } from "react";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import {
+  scrollToSectionId,
+  scrollToTop,
+} from "../../utils/hashScroll";
+import "./css/Navbar.css";
+
+const navItems = [
+  { label: "Home", id: "home" },
+  { label: "About", id: "about" },
+  { label: "Skills", id: "skills" },
+  { label: "Projects", id: "projects" },
+  { label: "Experience", id: "experience" },
+  { label: "Achievements", id: "achievements" },
+  { label: "Contact", id: "contact" },
+];
+
+function getInitials(name) {
+  if (!name) return "P";
+
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join("")
+    .toUpperCase();
+}
+
+export default function Navbar({profile }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("home");
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isHomePage = location.pathname === "/";
+
+
+  /* =========================================================
+     ACTIVE SECTION
+  ========================================================= */
+
+  useEffect(() => {
+    if (!isHomePage) {
+      setActiveSection("");
+      return;
+    }
+
+    const updateActiveSection = () => {
+      const scrollPosition = window.scrollY + 160;
+
+      let currentSection = "home";
+
+      navItems.forEach((item) => {
+        const section = document.getElementById(item.id);
+
+        if (!section) {
+          return;
+        }
+
+        if (scrollPosition >= section.offsetTop) {
+          currentSection = item.id;
+        }
+      });
+
+      setActiveSection(currentSection);
+    };
+
+    updateActiveSection();
+
+    window.addEventListener(
+      "scroll",
+      updateActiveSection,
+      { passive: true }
+    );
+
+    window.addEventListener(
+      "resize",
+      updateActiveSection
+    );
+
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        updateActiveSection
+      );
+
+      window.removeEventListener(
+        "resize",
+        updateActiveSection
+      );
+    };
+  }, [isHomePage]);
+
+
+  /* =========================================================
+     BODY SCROLL LOCK
+  ========================================================= */
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen
+      ? "hidden"
+      : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+
+  /* =========================================================
+     CLOSE MOBILE MENU WHEN ROUTE CHANGES
+  ========================================================= */
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+
+  /* =========================================================
+     GO TO HOMEPAGE SECTION
+  ========================================================= */
+
+  const goToSection = (id) => {
+  setMenuOpen(false);
+
+  /*
+   * Single navigation + hash-scroll system:
+   * navigate to / with the hash and let ScrollManager
+   * (the only location-driven scroll handler) wait for
+   * the section to render and scroll to it. Direct
+   * scrolling happens ONLY when re-clicking the hash
+   * that is already active, since that emits no
+   * location change for ScrollManager to react to.
+   */
+  if (id === "home") {
+    if (isHomePage) {
+      if (location.hash) {
+        // Let ScrollManager scroll to the top.
+        navigate("/");
+        return;
+      }
+
+      scrollToTop();
+
+      return;
+    }
+
+    navigate("/");
+
+    return;
+  }
+
+  if (
+    isHomePage &&
+    location.hash === `#${id}`
+  ) {
+    scrollToSectionId(id);
+    return;
+  }
+
+  navigate({
+    pathname: "/",
+    hash: `#${id}`,
+  });
+};
+
+
+  /* =========================================================
+     HOME
+  ========================================================= */
+
+  const goHome = () => {
+  setMenuOpen(false);
+
+  if (isHomePage) {
+    if (location.hash) {
+      // Let ScrollManager scroll to the top.
+      navigate("/");
+      return;
+    }
+
+    scrollToTop();
+
+    return;
+  }
+
+  navigate("/");
+};
+
+
+  return (
+    <>
+      {/* =====================================================
+          NAVBAR
+      ===================================================== */}
+
+      <header className="site-navbar">
+
+        <div className="navbar-container">
+
+          {/* Logo */}
+
+          <button
+            type="button"
+            className="navbar-logo"
+            onClick={goHome}  
+            aria-label="Go to home"
+          >
+            <span className="logo-mark">
+             {getInitials(profile?.name)}
+            </span>
+
+            <span className="logo-text">
+             {profile?.name || "PORTFOLIO"}
+            </span>
+          </button>
+
+
+          {/* =================================================
+              DESKTOP NAVIGATION
+          ================================================= */}
+
+          <nav
+            className="desktop-nav"
+            aria-label="Main navigation"
+          >
+
+            {navItems.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                className={
+                  activeSection === item.id
+                    ? "nav-link active"
+                    : "nav-link"
+                }
+                onClick={() =>
+                  goToSection(item.id)
+                }
+              >
+                {item.label}
+              </button>
+            ))}
+
+          </nav>
+
+
+          {/* =================================================
+              RESUME
+          ================================================= */}
+
+          <Link
+            to="/resume"
+            className={
+              location.pathname === "/resume"
+                ? "navbar-resume active"
+                : "navbar-resume"
+            }
+          >
+            Resume
+          </Link>
+
+
+          {/* =================================================
+              HIRE ME
+          ================================================= */}
+
+          <button
+            type="button"
+            className="navbar-hire"
+            onClick={() =>
+              goToSection("contact")
+            }
+          >
+            Hire Me
+            <span>→</span>
+          </button>
+
+
+          {/* =================================================
+              MOBILE MENU BUTTON
+          ================================================= */}
+
+          <button
+            type="button"
+            className={
+              menuOpen
+                ? "mobile-menu-button open"
+                : "mobile-menu-button"
+            }
+            onClick={() =>
+              setMenuOpen(
+                (previous) => !previous
+              )
+            }
+            aria-label={
+              menuOpen
+                ? "Close navigation"
+                : "Open navigation"
+            }
+            aria-expanded={menuOpen}
+          >
+            <span />
+            <span />
+          </button>
+
+        </div>
+      </header>
+
+
+      {/* =====================================================
+          MOBILE BACKDROP
+      ===================================================== */}
+
+      <div
+        className={
+          menuOpen
+            ? "mobile-backdrop visible"
+            : "mobile-backdrop"
+        }
+        onClick={() =>
+          setMenuOpen(false)
+        }
+        aria-hidden="true"
+      />
+
+
+      {/* =====================================================
+          MOBILE SIDEBAR
+      ===================================================== */}
+
+      <aside
+        className={
+          menuOpen
+            ? "mobile-sidebar open"
+            : "mobile-sidebar"
+        }
+        aria-label="Mobile navigation"
+      >
+
+        <div className="mobile-sidebar-header">
+
+          <span>
+            NAVIGATION
+          </span>
+
+          <button
+            type="button"
+            onClick={() =>
+              setMenuOpen(false)
+            }
+            aria-label="Close navigation"
+          >
+            ×
+          </button>
+
+        </div>
+
+
+        {/* =================================================
+            MOBILE NAVIGATION
+        ================================================= */}
+
+        <nav className="mobile-nav">
+
+          {navItems.map((item, index) => (
+            <div
+              key={item.id}
+              className="mobile-nav-row"
+            >
+
+              <span className="mobile-nav-number">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+
+              <button
+                type="button"
+                className={
+                  activeSection === item.id
+                    ? "mobile-nav-link active"
+                    : "mobile-nav-link"
+                }
+                onClick={() =>
+                  goToSection(item.id)
+                }
+              >
+                {item.label}
+              </button>
+
+            </div>
+          ))}
+
+
+          {/* Resume */}
+
+          <div className="mobile-nav-row">
+
+            <span className="mobile-nav-number">
+              08
+            </span>
+
+            <Link
+              to="/resume"
+              className={
+                location.pathname === "/resume"
+                  ? "mobile-nav-link active"
+                  : "mobile-nav-link"
+              }
+              onClick={() =>
+                setMenuOpen(false)
+              }
+            >
+              Resume
+            </Link>
+
+          </div>
+
+        </nav>
+
+
+        {/* =================================================
+            MOBILE FOOTER
+        ================================================= */}
+
+        <div className="mobile-sidebar-footer">
+
+          {profile?.github_url && (
+           <a
+            href={profile.github_url}
+            target="_blank"
+            rel="noopener noreferrer"
+           >
+            GitHub ↗
+           </a>
+          )}
+
+          {profile?.linkedin_url && (
+           <a
+            href={profile.linkedin_url}
+            target="_blank"
+            rel="noopener noreferrer"
+           >
+            LinkedIn ↗
+           </a>
+          )}
+
+        </div>
+
+      </aside>
+    </>
+  );
+}

@@ -1,0 +1,20 @@
+{
+  "name": "krishna-kumar-portfolio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/prepare-github-pages.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "1.20.0",
+    "framer-motion": "13.2.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-router-dom": "7.18.3",
+    "three": "0.185.1",
+    "vite": "8.2.2"
+  }
+}
