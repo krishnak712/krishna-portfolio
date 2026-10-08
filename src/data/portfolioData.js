@@ -1,6 +1,6 @@
 export const profile = {
   id: 1,
-  name: "KRISHNA KUMAR R",
+  name: "KRISHNA KUMAR",
   role: "Java Full Stack Developer",
   short_bio:
     "Java Full Stack Developer with professional experience building secure backend services, RESTful APIs, and full-stack applications.",
